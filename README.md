@@ -1,44 +1,54 @@
 # Testes Unitários
 
-
-Este repositório contém exemplos de testes unitários utilizando **Moq** e frameworks de testes como **xUnit** e **MSTest**. Os testes verificam o comportamento de dois serviços: `OrderProcessingService` e `BankAccount`.
+Este repositório contém exemplos de testes unitários utilizando Moq e frameworks de testes como xUnit e MSTest. Os testes verificam o comportamento de dois serviços: `OrderProcessingService` e `BankAccount`.
 
 ## Tópicos
 
 - [OrderProcessingService Tests](#orderprocessingservice-tests)
 - [BankAccount Tests](#bankaccount-tests)
-- [Como Rodar os Testes](#como-rodar-os-testes)
-
----
 
 ## BankAccount Tests
-Esse exemplo foi criado pela Microsoft e está disponivel na documentação da sessão de testes unitarios na [Documentação do Teste de Unidade](https://learn.microsoft.com/pt-br/visualstudio/test/walkthrough-creating-and-running-unit-tests-for-managed-code?view=vs-2022)
- os testes implementados validam o comportamento da classe da  conta bancária, verificando se os métodos de débito estão funcionando corretamente e se as exceções são lançadas quando os valores são inválidos.
 
-Testes Implementados:
-Debit_WithValidAmount_UpdatesBalance
-
-Verifica se o saldo da conta bancária é atualizado corretamente após um débito.
-Debit_WhenAmountIsMoreThanBalance_ShouldThrowArgumentOutOfRange
-
-Verifica se uma exceção é lançada quando o valor a ser debitado é maior do que o saldo da conta.
-
-
-## OrderProcessingService Tests
-
-Os testes de `OrderProcessingService` verificam a funcionalidade de processamento de pedidos, como a verificação se um pedido foi processado corretamente, se o email foi enviado, e se as interações com o repositório de pedidos ocorreram conforme esperado.
+Esse exemplo foi criado pela Microsoft e está disponível na documentação oficial sobre testes unitários. Os testes implementados validam o comportamento da classe de conta bancária, verificando se os métodos de débito funcionam corretamente e se as exceções são lançadas quando os valores são inválidos.
 
 ### Testes Implementados:
 
-1. **ProcessOrder_ShouldProcessOrder_WhenOrderExistsAndIsNotProcessed**
-    - Verifica se o pedido é processado corretamente quando existe e não foi processado.
-    - Utiliza o método `Fact` para um único caso de teste.
+- **`Debit_WithValidAmount_UpdatesBalance`**:
+  - Verifica se o saldo da conta bancária é atualizado corretamente após um débito.
+- **`Debit_WhenAmountIsMoreThanBalance_ShouldThrowArgumentOutOfRange`**:
+  - Verifica se uma exceção é lançada quando o valor a ser debitado é maior do que o saldo da conta.
 
-2. **ProcessOrder_ShouldReturnCorrectResult_WhenOrderExistsAndIsNotProcessed**
-    - Testa diferentes cenários de pedidos com o uso de `Theory` e `InlineData`, verificando se o pedido é processado corretamente ou não, com base no estado do pedido.
+## OrderProcessingService Tests
 
-3. **ProcessOrder_ShouldReturnCorrectResult_WhenUsingClassData**
-    - Usa `ClassData` para fornecer dados de teste, permitindo a reutilização de dados e mantendo os testes organizados.
+Os testes de `OrderProcessingService` verificam a funcionalidade de processamento de pedidos, como:
 
-4. **ProcessOrder_ShouldReturnCorrectResult_WhenUsingMemberData**
-    - Usa `MemberData` para fornecer dados de teste a partir de um método estático, permitindo mais flexibilidade para definir os dados.
+- Se um pedido foi processado corretamente.
+- Se o email de confirmação foi enviado.
+- Se as interações com o repositório de pedidos ocorreram conforme esperado.
+
+### Testes Implementados:
+
+- **`ProcessOrder_ShouldProcessOrder_WhenOrderExistsAndIsNotProcessed`**:
+  - Verifica se um pedido é processado corretamente quando ele existe e ainda não foi processado.
+  - Garante que o pedido é marcado como processado.
+  - Verifica se o método `SaveOrder` é chamado corretamente.
+  - Confirma que um email de confirmação foi enviado ao cliente.
+
+- **`ProcessOrder_ShouldNotProcess_WhenOrderIsAlreadyProcessed`**:
+  - Verifica se o pedido não é processado novamente caso já tenha sido processado.
+  - Garante que o repositório não salva o pedido novamente.
+  - Certifica-se de que nenhum email é enviado para o cliente.
+
+- **`ProcessOrder_ShouldReturnFalse_WhenOrderDoesNotExist`**:
+  - Retorna `false` quando o pedido não existe no repositório.
+  - Garante que nenhuma tentativa de salvar o pedido ocorre.
+  - Verifica que nenhum email de confirmação é enviado.
+
+- **`ProcessOrder_ShouldReturnCorrectResult_WhenUsingClassData`**:
+  - Usa `ClassData` para fornecer dados de teste reutilizáveis.
+  - Testa diferentes cenários para validar o comportamento do método `ProcessOrder`.
+
+- **`ProcessOrder_ShouldReturnCorrectResult_WhenUsingMemberData`**:
+  - Usa `MemberData` para fornecer dados de teste de um método estático.
+  - Testa diferentes cenários para validar o comportamento do método `ProcessOrder`.
+
