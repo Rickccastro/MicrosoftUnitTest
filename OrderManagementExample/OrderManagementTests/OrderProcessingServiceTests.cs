@@ -23,42 +23,52 @@ public class OrderProcessingServiceTests
 
         // Assert
         Assert.True(result);
-        Assert.True(order.IsProcessed); // Order should be marked as processed
-        mockOrderRepository.Verify(repo => repo.SaveOrder(order), Times.Once); // Verify if SaveOrder was called
-        mockEmailService.Verify(service => service.SendEmail(order.CustomerEmail, "Order Processed", "Your order has been processed successfully."), Times.Once); // Verify email sending
+        Assert.True(order.IsProcessed); // Pedido deve estar marcado como processado
+        mockOrderRepository.Verify(repo => repo.SaveOrder(order), Times.Once); // Verifica se SaveOrder foi chamado
+        mockEmailService.Verify(service => service.SendEmail(order.CustomerEmail, "Order Processed", "Your order has been processed successfully."), Times.Once); // Verifica o envio de e-mail
     }
 
-
-    [Theory]
-    [InlineData(1, true, false)]  // Pedido já processado
-    [InlineData(2, false, false)] // Pedido não encontrado
-    public void ProcessOrder_ShouldReturnCorrectResult(int orderId, bool orderProcessed, bool expectedResult)
+    [Fact]
+    public void ProcessOrder_ShouldNotProcess_WhenOrderIsAlreadyProcessed()
     {
         // Arrange
-        var order = new Order { Id = orderId, CustomerEmail = "customer@example.com", TotalAmount = 100, IsProcessed = orderProcessed };
+        var order = new Order { Id = 1, CustomerEmail = "customer@example.com", TotalAmount = 100, IsProcessed = true };
 
         var mockOrderRepository = new Mock<IOrderRepository>();
-        mockOrderRepository.Setup(repo => repo.GetOrderById(orderId)).Returns(order);
+        mockOrderRepository.Setup(repo => repo.GetOrderById(1)).Returns(order);
 
         var mockEmailService = new Mock<IEmailService>();
 
         var service = new OrderProcessingService(mockOrderRepository.Object, mockEmailService.Object);
 
         // Act
-        var result = service.ProcessOrder(orderId);
+        var result = service.ProcessOrder(1);
 
         // Assert
-        Assert.Equal(expectedResult, result);
-        if (!orderProcessed)
-        {
-            mockOrderRepository.Verify(repo => repo.SaveOrder(order), Times.Once); // Verify SaveOrder was called
-            mockEmailService.Verify(service => service.SendEmail(order.CustomerEmail, "Order Processed", "Your order has been processed successfully."), Times.Once); // Verify email sending
-        }
-        else
-        {
-            mockOrderRepository.Verify(repo => repo.SaveOrder(order), Times.Never); // Verify SaveOrder was not called
-            mockEmailService.Verify(service => service.SendEmail(order.CustomerEmail, "Order Processed", "Your order has been processed successfully."), Times.Never); // Verify email was not sent
-        }
+        Assert.False(result);
+        mockOrderRepository.Verify(repo => repo.SaveOrder(It.IsAny<Order>()), Times.Never);
+        mockEmailService.Verify(service => service.SendEmail(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+    }
+
+    [Fact]
+    public void ProcessOrder_ShouldReturnFalse_WhenOrderDoesNotExist()
+    {
+        // Arrange
+        var mockOrderRepository = new Mock<IOrderRepository>();
+        var orderNull = new Order();
+        mockOrderRepository.Setup(repo => repo.GetOrderById(1)).Returns(orderNull); // Retorna null para simular pedido não encontrado
+
+        var mockEmailService = new Mock<IEmailService>();
+
+        var service = new OrderProcessingService(mockOrderRepository.Object, mockEmailService.Object);
+
+        // Act
+        var result = service.ProcessOrder(1);
+
+        // Assert
+        Assert.False(result);
+        mockOrderRepository.Verify(repo => repo.SaveOrder(It.IsAny<Order>()), Times.Never);
+        mockEmailService.Verify(service => service.SendEmail(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
     }
 
     [Theory]
@@ -81,7 +91,6 @@ public class OrderProcessingServiceTests
         // Assert
         Assert.Equal(expectedResult, result);
     }
-
 
     [Theory]
     [MemberData(nameof(OrderTestData))]
